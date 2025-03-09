@@ -20,7 +20,7 @@ sudo без пароля. На обоих серверах.
 7. Настроить бэкапирование PostgreSQL с сервера А на сервер Б.
 ```
 ## Структура проекта
-
+```
 ansible/
 ├── ansible.cfg
 ├── hosts.ini
@@ -51,7 +51,7 @@ ansible/
     ├── master-script.ssh
     ├── hosts.ini 
     └── playbook.yml
-        
+```        
 
 
 ## Детальное описание шагов и решений
