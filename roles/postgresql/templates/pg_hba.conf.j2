@@ -1,0 +1,21 @@
+# PostgreSQL Client Authentication Configuration File
+# Разрешены подключения исключительно с сервера B. Локальные подключения отклоняются.
+
+# Отклоняем подключения через UNIX-сокеты:
+local   all             postgres                                     trust
+
+# Отклоняем подключения по IPv4 с loopback-интерфейса:
+host    all             all             127.0.0.1/32            reject
+
+# Отклоняем подключения по IPv6 с loopback-интерфейса:
+host    all             all             ::1/128                 reject
+
+# Разрешаем подключения только с IP сервера B:
+host    all             all             {{ hostvars['renueb']['ansible_host'] }}/32    md5
+
+# Явно отклоняем все остальные IPv4 подключения:
+host    all             all             0.0.0.0/0               reject
+
+# Явно отклоняем все остальные IPv6 подключения:
+host    all             all             ::0/0                  reject
+

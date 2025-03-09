@@ -1,0 +1,62 @@
+- name: Настроить SSH и пользователя DevOps на сервере
+  hosts: all_groups
+  become: yes
+  tasks:
+  
+    - name: Обновить кэш apt
+      apt:
+        update_cache: yes
+
+    - name: Выполнить обновление установленных пакетов
+      apt:
+        upgrade: dist	
+	
+    - name: Добавить пользователя DevOps
+      user:
+        name: DevOps
+        shell: /bin/bash
+        create_home: yes
+      
+    - name: Создать директорию .ssh
+      file:
+        path: /home/DevOps/.ssh/
+        state: directory
+        owner: DevOps
+        group: DevOps
+        mode: '0755'  
+
+    - name: Добавить публичный ключ для пользователя DevOps
+      authorized_key:
+        user: DevOps
+        state: present
+        key: "{{ lookup('file', 'files/id_rsa.pub') }}"
+
+    - name: Создать файл ssh на сервере А и Б
+      copy:
+        src: /root/ansible/first/files/id_rsa.pub
+        dest: /home/DevOps/.ssh/authorized_keys        
+        owner: DevOps
+        group: DevOps
+        mode: '0644'
+
+    - name: Добавить sudo без пароля для DevOps
+      copy:
+        src: files/sudoers_devops
+        dest: /etc/sudoers.d/DevOps
+        owner: root
+        group: root
+        mode: '0440'
+
+    - name: Отключить парольную аутентификацию в SSH
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+        state: present
+      notify: Reboot SSH
+
+  handlers:
+    - name: Reboot SSH
+      service:
+        name: ssh
+        state: restarted

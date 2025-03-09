@@ -1,0 +1,22 @@
+#!/bin/bash
+# Скрипт для резервного копирования PostgreSQL с сервера A на сервер B
+
+# Локальный каталог для бэкапов на сервере A
+BACKUP_DIR=/home/DevOps/var/backups/pg
+mkdir -p "${BACKUP_DIR}"
+
+# Имя файла с временной меткой
+TIMESTAMP=$(date +"%F_%T")
+BACKUP_FILE="${BACKUP_DIR}/pg_backup_${TIMESTAMP}.sql"
+
+# Создать дамп всех баз данных PostgreSQL
+pg_dumpall -U postgres > "${BACKUP_FILE}"
+
+# Каталог для хранения бэкапов на сервере B
+REMOTE_DIR=/home/DevOps/var/backups/pg
+
+# Передать дамп на сервер B через scp, используя созданный SSH-ключ
+scp -o StrictHostKeyChecking=no -i /home/DevOps/.ssh/backup_id_rsa "${BACKUP_FILE}" DevOps@{{ hostvars['renueb']['ansible_host'] }}:"${REMOTE_DIR}"
+
+# Опционально: удалить локальные дампы старше 7 дней
+find "${BACKUP_DIR}" -type f -mtime +7 -delete

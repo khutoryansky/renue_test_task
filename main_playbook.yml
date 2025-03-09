@@ -1,0 +1,31 @@
+- name: Настройки для renueA
+  hosts: renueA
+  become: true
+  become_user: root
+  roles:
+    - fail2ban
+    - postgresql
+
+- name: Настройки для renueB
+  hosts: renueB
+  become: true
+  become_user: root
+  roles:
+    - nginx
+
+- name: Создать SSH пару для пользователя DevOps на сервере Б
+  hosts: renueB
+  become: true
+  become_user: DevOps
+  roles:
+    - backups_b
+
+- name: Настройки для бекапа сервера А
+  hosts: renueA
+  become: true
+  become_user: DevOps
+  roles:
+    - backups
+
+    
+    

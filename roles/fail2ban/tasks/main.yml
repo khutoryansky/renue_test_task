@@ -1,0 +1,16 @@
+- name: Setup fail2ban
+  apt:
+    name: fail2ban
+    state: present
+    update_cache: yes
+
+- name: Set jail to SSH
+  copy:
+    dest: /etc/fail2ban/jail.d/ssh.conf
+    content: |
+      [sshd]
+      enabled = true
+      maxretry = 3
+      findtime = 60
+      bantime = 3600
+  notify: Reboot fail2ban

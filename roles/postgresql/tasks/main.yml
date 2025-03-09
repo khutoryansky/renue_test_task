@@ -1,0 +1,32 @@
+- name: Установить PostgreSQL и python3-psycopg2
+  apt:
+    name:
+    - postgresql
+    - postgresql-client-common
+    - python3-psycopg2
+    state: present
+    update_cache: yes
+
+- name: Копировать db_setup.sql на удалённый сервер
+  copy:
+    src: db_setup.sql
+    dest: /tmp/db_setup.sql
+    mode: '0644'
+
+- name: Выполнить SQL-скрипт для настройки баз и пользователей
+  command: psql -U postgres -f /tmp/db_setup.sql
+  become: yes
+  become_user: postgres
+
+- name: Развернуть шаблон pg_hba.conf для ограничения подключений
+  template:
+    src: pg_hba.conf.j2
+    dest: /etc/postgresql/12/main/pg_hba.conf
+  notify: Reboot postgreSQL
+
+- name: Обновить настройки postgresql.conf (listen_addresses)
+  lineinfile:
+    path: /etc/postgresql/12/main/postgresql.conf
+    regexp: '^#?listen_addresses'
+    line: "listen_addresses = '*'"
+  notify: Reboot postgreSQL

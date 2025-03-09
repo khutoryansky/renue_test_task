@@ -1,0 +1,46 @@
+- name: Создать каталог для бэкапов для пользователя DevOps    
+  file:
+    path: /home/DevOps/var/backups/pg
+    state: directory
+    owner: DevOps
+    group: DevOps
+    mode: '0755'
+
+- name: Создать SSH ключевую пару для бэкапа, если не создана, на сервере А
+  openssh_keypair:
+    path: /home/DevOps/.ssh/backup_id_rsa
+    type: rsa
+    size: 4096
+    force: no
+  register: backup_key
+
+- name: Добавить публичный SSH ключ на сервер Б для пользователя DevOps
+  authorized_key:
+    user: DevOps
+    state: present
+    key: "{{ backup_key.public_key }}"
+  delegate_to: "{{ hostvars['renueb']['ansible_host'] }}"
+  remote_user: DevOps
+  run_once: true
+
+- name: Создать локальную директорию для бэкапов на сервере А
+  file:
+    path: /home/DevOps/var/backups/pg
+    state: directory
+    owner: DevOps
+    group: DevOps
+    mode: '0755'
+
+- name: Задэплоить скрипт резервного копирования на сервере А
+  template:
+    src: pg_backup.sh.j2
+    dest: /home/DevOps/pg_backup.sh
+    mode: '0755'
+
+- name: Добавить задание в cron для ежедневного бэкапа PostgreSQL
+  cron:
+    name: "PostgreSQL Backup"
+    user: DevOps
+    job: "/home/DevOps/pg_backup.sh >> /home/DevOps/var/log/pg_backup.log 2>&1"
+    minute: "0"
+    hour: "10"

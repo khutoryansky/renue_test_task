@@ -1,0 +1,9 @@
+[renueA]
+renuea ansible_host=138.199.217.41 ansible_user=root ansible_password=flye1542000
+
+[renueB]
+renueb ansible_host=138.199.217.31 ansible_user=root ansible_password=flye1542000
+
+[all_groups:children]
+renueA
+renueB

@@ -1,0 +1,30 @@
+- name: Установить nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: Настроить виртуальный хост для renue.ru
+  template:
+    src: renue.conf.j2
+    dest: /etc/nginx/sites-available/renue.conf
+  
+- name: Активировать сайт
+  file:
+    src: /etc/nginx/sites-available/renue.conf
+    dest: /etc/nginx/sites-enabled/renue.conf
+    state: link
+  notify: Reboot nginx
+
+- name: Отключить дефолтный сайт
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Заблокировать трафик с сервера A на порт 80 с помощью iptables
+  command: iptables -I INPUT -p tcp -s "{{ hostvars['renuea']['ansible_host'] }}" --dport 80 -j DROP
+  become: yes
+
+- name: Заблокировать трафик с сервера A на порт 443 с помощью iptables
+  command: iptables -I INPUT -p tcp -s "{{ hostvars['renuea']['ansible_host'] }}" --dport 443 -j DROP
+  become: yes

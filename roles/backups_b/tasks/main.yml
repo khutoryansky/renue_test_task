@@ -1,0 +1,27 @@
+- block:
+    - name: Убедиться, что директория .ssh существует для DevOps
+      file:
+        path: /home/DevOps/.ssh
+        state: directory
+        owner: DevOps
+        group: DevOps
+        mode: '0700'
+    
+    - name: Сгенерировать SSH ключевую пару для DevOps, если она отсутствует
+      openssh_keypair:
+        path: /home/DevOps/.ssh/id_rsa
+        type: rsa
+        size: 4096
+        owner: DevOps
+        group: DevOps
+        mode: '0600'
+        force: no
+      register: devops_keypair
+
+- name: Создать каталог для бэкапов для пользователя DevOps    
+  file:
+    path: /home/DevOps/var/backups/pg
+    state: directory
+    owner: DevOps
+    group: DevOps
+    mode: '0755'
